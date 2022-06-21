@@ -1,0 +1,112 @@
+---
+systemd:
+  units:
+    - name: etcd-member.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=etcd (System Container)
+        Documentation=https://github.com/etcd-io/etcd
+        Requires=docker.service
+        After=docker.service
+        [Service]
+        Environment=ETCD_IMAGE=gcr.io/etcd-development/etcd:v3.5.4
+        ExecStartPre=/usr/bin/docker run -d \
+          --name etcd \
+          --network host \
+          --env-file /etc/etcd/etcd.env \
+          --user 232:232 \
+          --volume /etc/ssl/etcd:/etc/ssl/certs:ro \
+          --volume /var/lib/etcd:/var/lib/etcd:rw \
+          $${ETCD_IMAGE}
+        ExecStart=docker logs -f etcd
+        ExecStop=docker stop etcd
+        ExecStopPost=docker rm etcd
+        Restart=always
+        RestartSec=10s
+        TimeoutStartSec=0
+        LimitNOFILE=40000
+        [Install]
+        WantedBy=multi-user.target
+    - name: docker.service
+      enabled: true
+    - name: locksmithd.service
+      mask: true
+    - name: wait-for-dns.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Wait for DNS entries
+        Wants=systemd-resolved.service
+        Before=etcd-member.service
+        [Service]
+        Type=oneshot
+        RemainAfterExit=true
+        ExecStart=/bin/sh -c 'while ! /usr/bin/grep '^[^#[:space:]]' /etc/resolv.conf > /dev/null; do sleep 1; done'
+        [Install]
+        RequiredBy=etcd-member.service
+    - name: bootstrap.service
+      contents: |
+        [Unit]
+        Description=Run bootstrap
+        Wants=docker.service
+        After=docker.service
+        ConditionPathExists=!/opt/bootstrap/bootstrap.done
+        [Service]
+        Type=oneshot
+        RemainAfterExit=true
+        WorkingDirectory=/opt/bootstrap
+        ExecStart=/opt/bootstrap/layout
+        ExecStartPost=/bin/touch /opt/bootstrap/bootstrap.done
+        [Install]
+        WantedBy=multi-user.target
+storage:
+  directories:
+    - path: /var/lib/etcd
+      filesystem: root
+      mode: 0700
+      overwrite: true
+  files:
+    - path: /opt/bootstrap/layout
+      filesystem: root
+      mode: 0544
+      contents:
+        inline: |
+          #!/bin/bash -e
+          mkdir -p /etc/ssl/etcd
+          mkdir -p /var/lib/etcd
+          chown -R etcd:etcd /etc/ssl/etcd
+          chmod -R 500 /etc/ssl/etcd
+          chmod -R 700 /var/lib/etcd
+    - path: /etc/sysctl.d/max-user-watches.conf
+      filesystem: root
+      mode: 0644
+      contents:
+        inline: |
+          fs.inotify.max_user_watches=16184
+    - path: /etc/etcd/etcd.env
+      filesystem: root
+      mode: 0644
+      contents:
+          inline: |
+            ETCD_NAME=${etcd_name}
+            ETCD_DATA_DIR=/var/lib/etcd
+            ETCD_ADVERTISE_CLIENT_URLS=http://${etcd_domain}:2379
+            ETCD_INITIAL_ADVERTISE_PEER_URLS=${etcd_peer_url}
+            ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379
+            ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380
+            ETCD_INITIAL_CLUSTER=${etcd_initial_cluster}
+            # ETCD_STRICT_RECONFIG_CHECK=true
+            # ETCD_TRUSTED_CA_FILE=/etc/ssl/certs/etcd/server-ca.crt
+            # ETCD_CERT_FILE=/etc/ssl/certs/etcd/server.crt
+            # ETCD_KEY_FILE=/etc/ssl/certs/etcd/server.key
+            # ETCD_CLIENT_CERT_AUTH=true
+            # ETCD_PEER_TRUSTED_CA_FILE=/etc/ssl/certs/etcd/peer-ca.crt
+            # ETCD_PEER_CERT_FILE=/etc/ssl/certs/etcd/peer.crt
+            # ETCD_PEER_KEY_FILE=/etc/ssl/certs/etcd/peer.key
+            # ETCD_PEER_CLIENT_CERT_AUTH=true
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+        - "${ssh_authorized_key}"
