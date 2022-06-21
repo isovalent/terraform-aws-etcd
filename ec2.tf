@@ -1,3 +1,13 @@
+resource "tls_private_key" "ssh_key" {
+  algorithm = "RSA"
+  rsa_bits  = "2048"
+}
+
+resource "aws_key_pair" "ssh_access" {
+  key_name   = "Generated SSH key for ${var.cluster_name}"
+  public_key = tls_private_key.ssh_key.public_key_openssh
+}
+
 data "aws_ami" "flatcar_stable_latest" {
   most_recent = true
   owners      = ["aws-marketplace"]
