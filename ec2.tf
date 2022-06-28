@@ -4,7 +4,7 @@ resource "tls_private_key" "ssh_key_etcd" {
 }
 
 resource "aws_key_pair" "ssh_access_etcd" {
-  key_name   = "Generated SSH key for ${var.cluster_name}"
+  key_name   = "Generated key for ETCD ${var.cluster_name}"
   public_key = tls_private_key.ssh_key_etcd.public_key_openssh
 }
 
