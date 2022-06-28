@@ -1,11 +1,11 @@
-resource "tls_private_key" "ssh_key" {
+resource "tls_private_key" "ssh_key_etcd" {
   algorithm = "RSA"
   rsa_bits  = "2048"
 }
 
-resource "aws_key_pair" "ssh_access" {
+resource "aws_key_pair" "ssh_access_etcd" {
   key_name   = "Generated SSH key for ${var.cluster_name}"
-  public_key = tls_private_key.ssh_key.public_key_openssh
+  public_key = tls_private_key.ssh_key_etcd.public_key_openssh
 }
 
 data "aws_ami" "flatcar_stable_latest" {
@@ -124,7 +124,7 @@ data "template_file" "etcd-configs" {
     etcd_name            = "etcd${count.index}"
     etcd_domain          = "${var.cluster_name}-etcd${count.index}.${var.domain_name}"
     etcd_initial_cluster = join(",", data.template_file.etcd-cluster.*.rendered)
-    ssh_authorized_key   = tls_private_key.ssh_key.public_key_openssh
+    ssh_authorized_key   = tls_private_key.ssh_key_etcd.public_key_openssh
     etcd_peer_url        = "http://${var.cluster_name}-etcd${count.index}.${var.domain_name}:2380"
   }
 }
