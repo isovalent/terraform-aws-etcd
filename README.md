@@ -2,6 +2,7 @@
 
 Deploys an etcd cluster in AWS on Flatcar Linux. Outputs node information and ALB endpoint. Meant to be used as a module.
 
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
@@ -14,16 +15,21 @@ Deploys an etcd cluster in AWS on Flatcar Linux. Outputs node information and AL
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.19.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.59.0 |
 | <a name="provider_ct"></a> [ct](#provider\_ct) | 0.10.0 |
-| <a name="provider_random"></a> [random](#provider\_random) | 3.3.1 |
-| <a name="provider_template"></a> [template](#provider\_template) | 2.2.0 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.4.3 |
+| <a name="provider_tls"></a> [tls](#provider\_tls) | 4.0.4 |
+
+## Modules
+
+No modules.
 
 ## Resources
 
 | Name | Type |
 |------|------|
 | [aws_instance.etcds](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
+| [aws_key_pair.ssh_access_etcd](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair) | resource |
 | [aws_lb.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb) | resource |
 | [aws_lb_listener.listener_http](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
 | [aws_lb_target_group.group](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
@@ -33,12 +39,11 @@ Deploys an etcd cluster in AWS on Flatcar Linux. Outputs node information and AL
 | [aws_route53_zone.etcd](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone) | resource |
 | [aws_security_group.etcd](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [random_id.index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
+| [tls_private_key.ssh_key_etcd](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
 | [aws_ami.flatcar_stable_latest](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_subnets.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnets) | data source |
 | [aws_subnets.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnets) | data source |
 | [ct_config.etcd-ignitions](https://registry.terraform.io/providers/poseidon/ct/0.10.0/docs/data-sources/config) | data source |
-| [template_file.etcd-cluster](https://registry.terraform.io/providers/hashicorp/template/latest/docs/data-sources/file) | data source |
-| [template_file.etcd-configs](https://registry.terraform.io/providers/hashicorp/template/latest/docs/data-sources/file) | data source |
 
 ## Inputs
 
@@ -60,5 +65,9 @@ Deploys an etcd cluster in AWS on Flatcar Linux. Outputs node information and AL
 
 | Name | Description |
 |------|-------------|
+| <a name="output_ct_configs"></a> [ct\_configs](#output\_ct\_configs) | ETCD Ignition configs |
 | <a name="output_etcd-endpoint"></a> [etcd-endpoint](#output\_etcd-endpoint) | ALB endpoint |
+| <a name="output_etcd_security_group_id"></a> [etcd\_security\_group\_id](#output\_etcd\_security\_group\_id) | The security group for etcd nodes |
+| <a name="output_etcd_ssh_private_key"></a> [etcd\_ssh\_private\_key](#output\_etcd\_ssh\_private\_key) | n/a |
 | <a name="output_nodes"></a> [nodes](#output\_nodes) | ID, public and private IP address, and subnet ID of all nodes of the created cluster. |
+<!-- END_TF_DOCS -->

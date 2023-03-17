@@ -107,35 +107,18 @@ resource "aws_instance" "etcds" {
 
 # etcd Ignition configs
 data "ct_config" "etcd-ignitions" {
-  count    = var.node_count
-  content  = data.template_file.etcd-configs.*.rendered[count.index]
-  strict   = true
-  snippets = var.etcd_snippets
-}
-
-# render the etcd Container Linux configs
-data "template_file" "etcd-configs" {
   count = var.node_count
-
-  template = file("${path.module}/etcd.yaml")
-
-  vars = {
-    # Cannot use cyclic dependencies on controllers or their DNS records
-    etcd_name            = "etcd${count.index}"
-    etcd_domain          = "${var.cluster_name}-etcd${count.index}.${var.domain_name}"
-    etcd_initial_cluster = join(",", data.template_file.etcd-cluster.*.rendered)
-    ssh_authorized_key   = tls_private_key.ssh_key_etcd.public_key_openssh
-    etcd_peer_url        = "http://${var.cluster_name}-etcd${count.index}.${var.domain_name}:2380"
-  }
-}
-
-data "template_file" "etcd-cluster" {
-  count    = var.node_count
-  template = "etcd$${index}=http://$${cluster_name}-etcd$${index}.$${domain_name}:2380"
-
-  vars = {
-    index        = count.index
-    cluster_name = var.cluster_name
-    domain_name  = var.domain_name
-  }
+  content = <<EOF
+${templatefile("${abspath(path.module)}/etcd.yaml", {
+  etcd_name            = "etcd${count.index}"
+  etcd_domain          = "${var.cluster_name}-etcd${count.index}.${var.domain_name}"
+  etcd_initial_cluster = <<EOL
+%{for index in range(var.node_count)}etcd${index}=http://${var.cluster_name}-etcd${index}.${var.domain_name}:2380%{if index != (var.node_count - 1)},%{endif}%{endfor}
+EOL
+  ssh_authorized_key   = tls_private_key.ssh_key_etcd.public_key_openssh
+  etcd_peer_url        = "http://${var.cluster_name}-etcd${count.index}.${var.domain_name}:2380"
+})}
+  EOF
+strict   = true
+snippets = var.etcd_snippets
 }
