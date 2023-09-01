@@ -1,6 +1,12 @@
+resource "random_string" "random_prefix" {
+  length  = 5
+  special = false
+  upper   = false
+}
+
 # Create a application load balancer for etcd
 resource "aws_lb" "alb" {
-  name               = "${var.cluster_name}-alb"
+  name               = "${random_string.random_prefix.result}-alb"
   load_balancer_type = "application"
   security_groups    = [aws_security_group.etcd.id]
   subnets            = local.subnet_ids_list
@@ -9,7 +15,7 @@ resource "aws_lb" "alb" {
 
 # Create the target group for the ALB
 resource "aws_lb_target_group" "group" {
-  name     = "${var.cluster_name}-target-group"
+  name     = "${random_string.random_prefix.result}-alb"
   port     = "2379"
   protocol = "HTTP"
   vpc_id   = var.vpc_id
