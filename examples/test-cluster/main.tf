@@ -1,7 +1,7 @@
 locals {
-  cluster_name    = "test-cluster"
-  region          = "us-west-1"
-  domain_name     = "hartetcd1.com"
+  cluster_name = "test-cluster"
+  region       = "us-west-1"
+  domain_name  = "hartetcd1.com"
   tags = {
     "usage" = "dogfooding",
     "owner" = "isovalent",
@@ -36,10 +36,10 @@ module "test_cluster" {
   providers = {
     aws = aws.us_west_1
   }
-  vpc_id = module.test_vpc.id
-  cluster_name   = local.cluster_name
-  region = local.region
-  tags   = local.tags
-  node_count = 3
-  domain_name = local.domain_name
+  vpc_id       = module.test_vpc.id
+  cluster_name = local.cluster_name
+  region       = local.region
+  tags         = local.tags
+  node_count   = 3
+  domain_name  = local.domain_name
 }
