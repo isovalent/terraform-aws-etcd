@@ -1,3 +1,21 @@
+variable "ami_owner_id" {
+  description = "The AMI ID to use for the etcd cluster."
+  type        = string
+  default     = "amazon"
+}
+
+variable "ami_name_filter" {
+  description = "The name of the AMI to use for the etcd cluster."
+  type        = string
+  default     = "amzn2-ami-hvm*"
+}
+
+variable "ami_architecture" {
+  description = "The architecture of the AMI to use for the etcd cluster."
+  type        = string
+  default     = "x86_64"
+}
+
 variable "cluster_name" {
   description = "The name of the etcd cluster."
   type        = string
@@ -53,10 +71,4 @@ variable "disk_iops" {
   type        = number
   description = "IOPS of the EBS volume (e.g. 3000)"
   default     = 3000
-}
-
-variable "etcd_snippets" {
-  type        = list(string)
-  description = "Etcd Container Linux Config snippets"
-  default     = []
 }

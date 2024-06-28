@@ -8,13 +8,17 @@ resource "aws_key_pair" "ssh_access_etcd" {
   public_key = tls_private_key.ssh_key_etcd.public_key_openssh
 }
 
-data "aws_ami" "flatcar_stable_latest" {
+data "aws_ami" "main" {
   most_recent = true
-  owners      = ["aws-marketplace"]
+  owners = [
+    var.ami_owner_id
+  ]
 
   filter {
-    name   = "architecture"
-    values = ["x86_64"]
+    name = "name"
+    values = [
+      var.ami_name_filter,
+    ]
   }
 
   filter {
@@ -23,8 +27,10 @@ data "aws_ami" "flatcar_stable_latest" {
   }
 
   filter {
-    name   = "name"
-    values = ["Flatcar-stable-*"]
+    name = "architecture"
+    values = [
+      var.ami_architecture
+    ]
   }
 }
 
@@ -73,9 +79,15 @@ locals {
 // Create etcd instances
 resource "aws_instance" "etcds" {
   count         = var.node_count
-  ami           = data.aws_ami.flatcar_stable_latest.image_id
+  ami           = data.aws_ami.main.id
   instance_type = var.instance_type
-  user_data     = data.ct_config.etcd-ignitions.*.rendered[count.index]
+  user_data = templatefile("${path.module}/etcd.sh.tpl", {
+    etcd_name            = "etcd${count.index}",
+    etcd_domain          = "${var.cluster_name}-etcd${count.index}.${var.domain_name}",
+    etcd_initial_cluster = join(",", [for i in range(var.node_count) : "etcd${i}=http://${var.cluster_name}-etcd${i}.${var.domain_name}:2380"]),
+    ssh_authorized_key   = tls_private_key.ssh_key_etcd.public_key_openssh,
+    etcd_peer_url        = "http://${var.cluster_name}-etcd${count.index}.${var.domain_name}:2380"
+  })
 
   # storage
   root_block_device {
@@ -103,22 +115,4 @@ resource "aws_instance" "etcds" {
   tags = merge(var.tags, {
     Name = "${var.cluster_name}-${count.index}"
   })
-}
-
-# etcd Ignition configs
-data "ct_config" "etcd-ignitions" {
-  count = var.node_count
-  content = <<EOF
-${templatefile("${abspath(path.module)}/etcd.yaml", {
-  etcd_name            = "etcd${count.index}"
-  etcd_domain          = "${var.cluster_name}-etcd${count.index}.${var.domain_name}"
-  etcd_initial_cluster = <<EOL
-%{for index in range(var.node_count)}etcd${index}=http://${var.cluster_name}-etcd${index}.${var.domain_name}:2380%{if index != (var.node_count - 1)},%{endif}%{endfor}
-EOL
-  ssh_authorized_key   = tls_private_key.ssh_key_etcd.public_key_openssh
-  etcd_peer_url        = "http://${var.cluster_name}-etcd${count.index}.${var.domain_name}:2380"
-})}
-  EOF
-strict   = true
-snippets = var.etcd_snippets
 }

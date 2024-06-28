@@ -25,8 +25,3 @@ output "etcd_ssh_private_key" {
   value     = tls_private_key.ssh_key_etcd.private_key_pem
   sensitive = true
 }
-
-output "ct_configs" {
-  value       = data.ct_config.etcd-ignitions[*]
-  description = "ETCD Ignition configs"
-}
