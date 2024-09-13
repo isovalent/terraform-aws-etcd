@@ -71,9 +71,7 @@ resource "random_id" "index" {
 }
 
 locals {
-  subnet_ids_list         = tolist(data.aws_subnets.public.ids)                       // used for a random subnet
-  subnet_ids_random_index = random_id.index.dec % length(data.aws_subnets.public.ids) // used for a random subnet
-  instance_subnet_id      = local.subnet_ids_list[local.subnet_ids_random_index]      // used for a random subnet
+  subnet_ids_list = tolist(data.aws_subnets.public.ids) // used to distrubute nodes in subnets
 }
 
 // Create etcd instances
@@ -102,7 +100,7 @@ resource "aws_instance" "etcds" {
     aws_security_group.etcd.id
   ]
   associate_public_ip_address = true
-  subnet_id                   = local.instance_subnet_id
+  subnet_id                   = element(local.subnet_ids_list, count.index)
 
   lifecycle {
     ignore_changes = [

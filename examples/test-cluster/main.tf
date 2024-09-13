@@ -14,13 +14,8 @@ provider "aws" {
   region  = "us-west-1"
 }
 
-provider "github" {
-  owner = "isovalent"
-  token = var.github_token
-}
-
 module "test_vpc" {
-  source = "git::ssh://git@github.com/isovalent/terraform-aws-vpc.git?ref=1.1"
+  source = "git::ssh://git@github.com/isovalent/terraform-aws-vpc.git?ref=v1.9"
   providers = {
     aws = aws.us_west_1
   }
