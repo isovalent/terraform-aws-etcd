@@ -17,7 +17,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: terraform fmt
-        uses: dflook/terraform-fmt-check@3992bb501836411442fdd6b1fc91dc8823365b62
+        uses: dflook/terraform-fmt-check@b98f10243fae6793362c225327f36e6286d367fd
   docs:
     needs: formatting
     runs-on: ubuntu-22.04
