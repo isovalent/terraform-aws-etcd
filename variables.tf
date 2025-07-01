@@ -72,3 +72,9 @@ variable "disk_iops" {
   description = "IOPS of the EBS volume (e.g. 3000)"
   default     = 3000
 }
+
+variable "allow_cidr_blocks_ingress" {
+  description = "List of CIDR blocks to allow inbound traffic."
+  type        = list(string)
+  default     = [""]
+}

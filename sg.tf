@@ -8,7 +8,7 @@ resource "aws_security_group" "etcd" {
     from_port   = 2379
     to_port     = 2380
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = var.allow_cidr_blocks_ingress
   }
 
   ingress {
