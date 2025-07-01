@@ -1,13 +1,3 @@
-resource "tls_private_key" "ssh_key_etcd" {
-  algorithm = "RSA"
-  rsa_bits  = "2048"
-}
-
-resource "aws_key_pair" "ssh_access_etcd" {
-  key_name   = "Generated key for ETCD ${var.cluster_name}"
-  public_key = tls_private_key.ssh_key_etcd.public_key_openssh
-}
-
 data "aws_ami" "main" {
   most_recent = true
   owners = [
@@ -34,22 +24,6 @@ data "aws_ami" "main" {
   }
 }
 
-// Used to list all public subnets in the VPC.
-data "aws_subnets" "public" {
-  filter {
-    name = "vpc-id"
-    values = [
-      var.vpc_id
-    ]
-  }
-  filter {
-    name = "tag:type"
-    values = [
-      "public"
-    ]
-  }
-}
-
 data "aws_subnets" "private" {
   filter {
     name = "vpc-id"
@@ -65,13 +39,8 @@ data "aws_subnets" "private" {
   }
 }
 
-// Used to pick a subnet for nodes
-resource "random_id" "index" {
-  byte_length = 1
-}
-
 locals {
-  subnet_ids_list = tolist(data.aws_subnets.public.ids) // used to distrubute nodes in subnets
+  subnet_ids_list = tolist(data.aws_subnets.private.ids) // used to distrubute nodes in subnets
 }
 
 // Create etcd instances
@@ -81,10 +50,8 @@ resource "aws_instance" "etcds" {
   instance_type = var.instance_type
   user_data = templatefile("${path.module}/etcd.sh.tpl", {
     etcd_name            = "etcd${count.index}",
-    etcd_domain          = "${var.cluster_name}-etcd${count.index}.${var.domain_name}",
     etcd_initial_cluster = join(",", [for i in range(var.node_count) : "etcd${i}=http://${var.cluster_name}-etcd${i}.${var.domain_name}:2380"]),
-    ssh_authorized_key   = tls_private_key.ssh_key_etcd.public_key_openssh,
-    etcd_peer_url        = "http://${var.cluster_name}-etcd${count.index}.${var.domain_name}:2380"
+    etcd_version         = var.etcd_version
   })
 
   # storage

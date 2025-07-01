@@ -9,13 +9,12 @@ locals {
 }
 
 provider "aws" {
-  alias   = "us_west_1"
-  profile = "cilium-dev"
-  region  = "us-west-1"
+  alias  = "us_west_1"
+  region = "us-west-1"
 }
 
 module "test_vpc" {
-  source = "git::ssh://git@github.com/isovalent/terraform-aws-vpc.git?ref=v1.9"
+  source = "git::ssh://git@github.com/isovalent/terraform-aws-vpc.git?ref=v1.13"
   providers = {
     aws = aws.us_west_1
   }
@@ -37,4 +36,15 @@ module "test_cluster" {
   tags         = local.tags
   node_count   = 3
   domain_name  = local.domain_name
+  vpc_cidr     = module.test_vpc.vpc_cidr_block
+}
+
+output "nodes" {
+  value       = module.test_cluster.nodes.*
+  description = "ID, public and private IP address, and subnet ID of all nodes of the created cluster."
+}
+
+output "etcd-endpoint" {
+  value       = module.test_cluster.etcd-endpoint
+  description = "etcd load balancer endpoint"
 }

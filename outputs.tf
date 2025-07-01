@@ -20,8 +20,3 @@ output "etcd_security_group_id" {
   value       = aws_security_group.etcd.id
   description = "The security group for etcd nodes"
 }
-
-output "etcd_ssh_private_key" {
-  value     = tls_private_key.ssh_key_etcd.private_key_pem
-  sensitive = true
-}

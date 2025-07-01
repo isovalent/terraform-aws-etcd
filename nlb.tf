@@ -4,20 +4,20 @@ resource "random_string" "random_prefix" {
   upper   = false
 }
 
-# Create a application load balancer for etcd
-resource "aws_lb" "alb" {
-  name               = "${random_string.random_prefix.result}-alb"
-  load_balancer_type = "application"
+# Create a network load balancer for etcd
+resource "aws_lb" "nlb" {
+  name               = "${random_string.random_prefix.result}-nlb"
+  load_balancer_type = "network"
   security_groups    = [aws_security_group.etcd.id]
   subnets            = local.subnet_ids_list
-  internal           = false
+  internal           = true
 }
 
-# Create the target group for the ALB
+# Create the target group for the NLB
 resource "aws_lb_target_group" "group" {
-  name     = "${random_string.random_prefix.result}-alb"
+  name     = "${random_string.random_prefix.result}-nlb"
   port     = "2379"
-  protocol = "HTTP"
+  protocol = "TCP"
   vpc_id   = var.vpc_id
 
   health_check {
@@ -25,16 +25,16 @@ resource "aws_lb_target_group" "group" {
     unhealthy_threshold = 10
     timeout             = 5
     interval            = 10
-    path                = "/version"
+    path                = "/readyz"
     port                = "2379"
   }
 }
 
 # Create a listener on the default ETCD listener port
 resource "aws_lb_listener" "listener_http" {
-  load_balancer_arn = aws_lb.alb.arn
+  load_balancer_arn = aws_lb.nlb.arn
   port              = "2379"
-  protocol          = "HTTP"
+  protocol          = "TCP"
 
   default_action {
     target_group_arn = aws_lb_target_group.group.arn

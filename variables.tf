@@ -21,6 +21,12 @@ variable "cluster_name" {
   type        = string
 }
 
+variable "etcd_version" {
+  default     = "v3.6.1"
+  description = "The version of etcd you are deploying"
+  type        = string
+}
+
 variable "region" {
   description = "The region in which to create the cluster."
   type        = string
@@ -71,4 +77,10 @@ variable "disk_iops" {
   type        = number
   description = "IOPS of the EBS volume (e.g. 3000)"
   default     = 3000
+}
+
+variable "vpc_cidr" {
+  type        = string
+  description = "VPC CIDR block for access to/from etcd"
+  default     = ""
 }

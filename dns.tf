@@ -19,5 +19,5 @@ resource "aws_route53_record" "etcd-lb" {
   name    = "etcd.${var.cluster_name}.${var.domain_name}"
   type    = "CNAME"
   ttl     = "30"
-  records = [aws_lb.alb.dns_name]
+  records = [aws_lb.nlb.dns_name]
 }
