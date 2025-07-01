@@ -48,6 +48,7 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_allow_cidr_blocks_ingress"></a> [allow\_cidr\_blocks\_ingress](#input\_allow\_cidr\_blocks\_ingress) | List of CIDR blocks to allow inbound traffic. | `list(string)` | <pre>[<br/>  ""<br/>]</pre> | no |
 | <a name="input_ami_architecture"></a> [ami\_architecture](#input\_ami\_architecture) | The architecture of the AMI to use for the etcd cluster. | `string` | `"x86_64"` | no |
 | <a name="input_ami_name_filter"></a> [ami\_name\_filter](#input\_ami\_name\_filter) | The name of the AMI to use for the etcd cluster. | `string` | `"amzn2-ami-hvm*"` | no |
 | <a name="input_ami_owner_id"></a> [ami\_owner\_id](#input\_ami\_owner\_id) | The AMI ID to use for the etcd cluster. | `string` | `"amazon"` | no |
